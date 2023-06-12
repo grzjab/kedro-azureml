@@ -98,7 +98,11 @@ class AzureMLPipelineDataSet(AbstractDataSet):
 
     @property
     def path(self) -> str:
-        return str(Path(self.folder) / Path(self._dataset_config[self._filepath_arg]))
+        fp = self._dataset_config[self._filepath_arg]
+        if fp is None:
+            return str(Path(self.folder))
+        else:
+            return str(Path(self.folder) / Path(fp))
 
     @property
     def _filepath(self) -> str:

@@ -82,7 +82,8 @@ class AzureMLPipelineDataSet(AbstractDataSet):
 
         dataset = dataset if isinstance(dataset, dict) else {"type": dataset}
         self._dataset_type, self._dataset_config = parse_dataset_definition(dataset)
-        self._dataset_config.pop("folder")
+        if "folder" in self._dataset_config.keys():
+            self._dataset_config.pop("folder")
 
         self.folder = folder
         self._filepath_arg = filepath_arg

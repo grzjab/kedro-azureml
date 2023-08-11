@@ -191,6 +191,9 @@ class AzureMLAssetDataSet(AzureMLPipelineDataSet, AbstractVersionedDataSet):
                 raise ValueError("Unsupported AzureMLDataset type")
             # we take the relative within the Azure dataset to avoid downloading
             # all files in a folder dataset.
+            path_on_azure = path_on_azure.replace("*.parquet", "")
+            path_on_azure = path_on_azure.replace("**", "")
+            path_on_azure = path_on_azure.replace("//", "/")
             for fpath in fs.ls(path_on_azure):
                 logger.info(f"Downloading {fpath} for local execution")
                 # using APPEND will keep the local file if exists

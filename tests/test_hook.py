@@ -44,6 +44,7 @@ def test_hook_after_context_created(
     azureml_local_run_hook.before_pipeline_run(
         run_params, dummy_pipeline, multi_catalog
     )
+    # if local execution
     if runner == SequentialRunner.__name__:
         assert multi_catalog.datasets.input_data._download is True
         assert multi_catalog.datasets.input_data._local_run is True

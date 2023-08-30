@@ -20,6 +20,7 @@ from kedro.io.core import (
 )
 
 from kedro_azureml.client import _get_azureml_client
+from kedro_azureml.config import AzureMLConfig
 from kedro_azureml.datasets.pipeline_dataset import AzureMLPipelineDataSet
 
 AzureMLDataAssetType = Literal["uri_file", "uri_folder"]
@@ -115,6 +116,15 @@ class AzureMLAssetDataSet(AzureMLPipelineDataSet, AbstractVersionedDataSet):
             )
 
     @property
+    def azure_config(self) -> AzureMLConfig:
+        """AzureML config to be used by the dataset."""
+        return self._azureml_config
+
+    @azure_config.setter
+    def azure_config(self, azure_config: AzureMLConfig) -> None:
+        self._azureml_config = azure_config
+
+    @property
     def path(self) -> str:
         # For local runs we want to replicate the folder structure of the remote dataset.
         # Otherwise kedros versioning would version at the file/folder level and not the
@@ -175,7 +185,9 @@ class AzureMLAssetDataSet(AzureMLPipelineDataSet, AbstractVersionedDataSet):
             fs = AzureMachineLearningFileSystem(azureml_ds.path)
             if azureml_ds.type == "uri_file":
                 # relative (to storage account root) path of the file dataset on azure
-                path_on_azure = fs._infer_storage_options(azureml_ds.path)[-1]
+                # Note that path is converted to str for compatibility reasons with
+                # fsspec AbstractFileSystem expand_path function
+                path_on_azure = str(fs._infer_storage_options(azureml_ds.path)[-1])
             elif azureml_ds.type == "uri_folder":
                 # relative (to storage account root) path of the folder dataset on azure
                 dataset_root_on_azure = fs._infer_storage_options(azureml_ds.path)[-1]
@@ -184,34 +196,30 @@ class AzureMLAssetDataSet(AzureMLPipelineDataSet, AbstractVersionedDataSet):
                     Path(dataset_root_on_azure)
                     / self._dataset_config[self._filepath_arg]
                 )
-                # if the filepath is to a file in the folder dataset we need the parent folder
-                if fs.isfile(path_on_azure):
-                    path_on_azure = str(Path(path_on_azure).parent)
             else:
                 raise ValueError("Unsupported AzureMLDataset type")
-            # we take the relative within the Azure dataset to avoid downloading
-            # all files in a folder dataset.
             path_on_azure = path_on_azure.replace("*.parquet", "")
             path_on_azure = path_on_azure.replace("**", "")
             path_on_azure = path_on_azure.replace("//", "/")
-            for fpath in fs.ls(path_on_azure):
-                logger.info(f"Downloading {fpath} for local execution")
-                # using APPEND will keep the local file if exists
+            if fs.isfile(path_on_azure):
+                # using APPEND will keep the local file if it already exists
                 # as versions are unique this will prevent unnecessary file download
-                fs.download(fpath, self.download_path, overwrite="APPEND")
+                fs.download(path_on_azure, self.download_path, overwrite="APPEND")
+            else:
+                # we take the relative within the Azure dataset to avoid downloading
+                # all files in a folder dataset.
+                for fpath in fs.ls(path_on_azure):
+                    logger.info(f"Downloading {fpath} for local execution")
+                    fs.download(fpath, self.download_path, overwrite="APPEND")
         return self._construct_dataset().load()
 
     def _save(self, data: Any) -> None:
         self._construct_dataset().save(data)
 
-    def as_local(self, azure_config, download: bool):
-        self._azureml_config = azure_config
-        self._local_run = True
-        if download:
-            self._download = True
+    def as_local_intermediate(self):
+        self._download = False
         # for local runs we want the data to be saved as a "local version"
-        else:
-            self._version = Version("local", "local")
+        self._version = Version("local", "local")
 
     def as_remote(self):
         self._version = None

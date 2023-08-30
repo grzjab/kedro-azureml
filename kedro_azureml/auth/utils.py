@@ -1,8 +1,6 @@
 import os
-from functools import cached_property
 
 from azure.identity import DefaultAzureCredential, InteractiveBrowserCredential
-from azureml.exceptions import UserErrorException
 
 
 def get_azureml_credentials():

@@ -18,4 +18,3 @@ def get_azureml_credentials():
         # Fall back to InteractiveBrowserCredential in case DefaultAzureCredential not work
         credential = InteractiveBrowserCredential()
     return credential
-

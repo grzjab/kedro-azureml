@@ -2,11 +2,22 @@
 
 ## [Unreleased]
 
--   Added support for pydantic v2 and bumped minimal required pydantic version to `2.0.0` by [@froessler](https://github.com/fdroessler)
+## [0.7.0] - 2023-11-15
+
+-   [💔 Breaking change] Renamed all `*DataSet` classes to `*Dataset` to follow Kedro's naming convention which will be introduced in 0.19.
+
+-   Upgraded minimal requirements for MLflow to `>=2.0.0,<3.0.0` to be compatible with `azureml-mlflow`
+
+-   Added `--on-job-scheduled` argument to `kedro azureml run` to plug-in custom behaviour after Azure ML job is scheduled [@Gabriel2409](https://github.com/Gabriel2409)
+
+## [0.6.0] - 2023-09-01
+
 -   Added ability to mark a node as deterministic (enables caching on Azure ML) by [@tomasvanpottelbergh](https://github.com/tomasvanpottelbergh)
 -   Explicitly disabled support for `AzureMLAssetDataSet` outputs of `uri_file` type by [@tomasvanpottelbergh](https://github.com/tomasvanpottelbergh)
 -   Made `AzureMLAssetDataSet` local and downloadable by default allowing their use in kedro sessions outside of pipeline runs e.g. `kedro ipython/jupyterlab` by [@froessler](https://github.com/fdroessler)
 -   Fixed FileNotFoundError for local runs (using `kedro run`) when using `AzureMLAssetDataSet` of type `uri_file` by [@Gabriel2409](https://github.com/Gabriel2409)
+-   [❗️ Old datasets removal ] All datasets based on Azure ML SDK v1 (azureml-core) are removed, with only importable stubs left which raise a deprecation warning.
+-   ARM macOS support should work again 🎉 (v1 SDKs are removed)
 
 ## [0.5.0] - 2023-08-11
 
@@ -75,7 +86,11 @@
 
 -   Initial plugin release
 
-[Unreleased]: https://github.com/getindata/kedro-azureml/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/getindata/kedro-azureml/compare/0.7.0...HEAD
+
+[0.7.0]: https://github.com/getindata/kedro-azureml/compare/0.6.0...0.7.0
+
+[0.6.0]: https://github.com/getindata/kedro-azureml/compare/0.5.0...0.6.0
 
 [0.5.0]: https://github.com/getindata/kedro-azureml/compare/0.4.1...0.5.0
 
